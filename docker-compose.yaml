@@ -1,0 +1,21 @@
+# Локальная база для разработки: make db.up. Порт 5433, чтобы не спорить с Postgres на машине.
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+      POSTGRES_DB: app
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - db:/var/lib/postgresql/data
+    # Проверка идёт по TCP: во время первичной настройки Postgres слушает только сокет и ещё перезапустится.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U app -d app"]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+
+volumes:
+  db:

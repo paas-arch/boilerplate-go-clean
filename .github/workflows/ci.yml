@@ -1,0 +1,44 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: ["main"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+
+      - name: Форматирование
+        run: |
+          files=$(gofmt -l .)
+          [ -z "$files" ] || { echo "не отформатированы (make fmt):"; echo "$files"; exit 1; }
+
+      # Сгенерированный код и моки лежат в git: если схема или deps.go изменились без них, сборка расходится с контрактом.
+      - name: Свежесть кодогенерации и моков
+        run: |
+          rm -rf internal/generated/api/schema
+          find internal -type d -name _mocks -prune -exec rm -rf {} +
+          make codegen && make generate
+          [ -z "$(git status --porcelain -- internal)" ] || { echo "сгенерированные файлы устарели: make codegen && make generate, результат закоммитить"; git status --short -- internal; exit 1; }
+
+      - name: Линтер
+        uses: golangci/golangci-lint-action@v9
+        with:
+          version: v2.15.0
+
+      - name: Тесты
+        run: go test ./...
