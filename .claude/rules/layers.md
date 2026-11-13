@@ -14,6 +14,6 @@
 - База: sqlx + lib/pq, подключение в `internal/util/psql`. Схему меняют только миграции goose в `migrations/`; применяет их образ `migrator` перед каждой выкаткой, сам сервис миграций не запускает.
 - `internal/generated/` правит только `make codegen`.
 - Юнит-тесты — только табличные: слайс кейсов + цикл с `t.Run(tt.name, ...)`, по одной таблице на метод. `testify` + `gomock`, моки из `deps.go` (`make generate`) в `_mocks/`. Имена кейсов — по-русски.
-- Модуль Go — `app.internal` (первая строка `go.mod`; зона `.internal` не публичная, путь ни с чем не спутать), в шаблонах скилов он обозначен `<module>`.
+- Модуль Go — из первой строки `go.mod`, в шаблонах скилов он обозначен `<module>`.
 
 Скилы на создание слоя: `new-client`, `new-service`, `new-usecase`, `new-handler`, `new-repository`, `new-migration`. Правила базы — `repository.md` и `migrations.md`.
