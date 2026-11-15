@@ -23,7 +23,7 @@
 │   ├── service/<mechanism>/        # Доменные механизмы
 │   ├── usecase/<verb_noun>/        # Сценарии
 │   └── util/
-│       ├── logger/                 # Журнал в stdout, необязательный Sentry
+│       ├── logger/                 # Журнал в stdout (JSON), необязательный Sentry; вызов: log.Info(ctx, "сообщение", "ключ", значение, …), error — полем error
 │       ├── psql/                   # Подключение к Postgres
 │       └── webserver/              # HTTP-сервер, /health, codegen OpenAPI → Go
 ├── migrations/                     # Миграции goose; образ migrator применяет их перед выкаткой

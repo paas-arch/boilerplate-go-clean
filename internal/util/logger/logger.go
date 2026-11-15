@@ -54,21 +54,25 @@ func (l *Logger) Flush() {
 }
 
 func (l *Logger) Debug(ctx context.Context, args ...interface{}) {
-	l.z.With(extractCtxFields(ctx)...).Debug(args...)
+	msg, kv := split(args)
+	l.z.With(extractCtxFields(ctx)...).Debugw(msg, kv...)
 }
 
 func (l *Logger) Info(ctx context.Context, args ...interface{}) {
-	l.z.With(extractCtxFields(ctx)...).Info(args...)
+	msg, kv := split(args)
+	l.z.With(extractCtxFields(ctx)...).Infow(msg, kv...)
 }
 
 func (l *Logger) Error(ctx context.Context, args ...interface{}) {
-	l.z.With(extractCtxFields(ctx)...).Error(args...)
-	l.sendToSentry(ctx, sentry.LevelError, args)
+	msg, kv := split(args)
+	l.z.With(extractCtxFields(ctx)...).Errorw(msg, kv...)
+	l.sendToSentry(ctx, sentry.LevelError, msg, args)
 }
 
 func (l *Logger) Warning(ctx context.Context, args ...interface{}) {
-	l.z.With(extractCtxFields(ctx)...).Warn(args...)
-	l.sendToSentry(ctx, sentry.LevelWarning, args)
+	msg, kv := split(args)
+	l.z.With(extractCtxFields(ctx)...).Warnw(msg, kv...)
+	l.sendToSentry(ctx, sentry.LevelWarning, msg, args)
 }
 
 func (l *Logger) WithError(ctx context.Context, err error) context.Context {
@@ -95,13 +99,12 @@ func (l *Logger) WithFields(ctx context.Context, fields map[string]interface{}) 
 }
 
 // sendToSentry шлёт error из аргументов как исключение со стектрейсом, а без него — как сообщение.
-func (l *Logger) sendToSentry(ctx context.Context, level sentry.Level, args []interface{}) {
+func (l *Logger) sendToSentry(ctx context.Context, level sentry.Level, msg string, args []interface{}) {
 	if !l.sentry {
 		return
 	}
 	// Клон хаба, чтобы параллельные запросы не смешивали контекст в общем scope.
 	hub := sentry.CurrentHub().Clone()
-	msg := fmt.Sprint(args...)
 	hub.ConfigureScope(func(scope *sentry.Scope) {
 		scope.SetLevel(level)
 		fields := extractCtxFields(ctx)
@@ -118,6 +121,33 @@ func (l *Logger) sendToSentry(ctx context.Context, level sentry.Level, args []in
 		}
 	}
 	hub.CaptureMessage(msg)
+}
+
+// split делит аргументы вызова на сообщение и поля: первый аргумент — сообщение, дальше пары «ключ, значение»;
+// error в любом месте становится полем error, значение без ключа — полем arg.
+func split(args []interface{}) (string, []interface{}) {
+	if len(args) == 0 {
+		return "", nil
+	}
+	msg := fmt.Sprint(args[0])
+	if err, ok := args[0].(error); ok && err != nil {
+		msg = err.Error()
+	}
+	rest := args[1:]
+	var kv []interface{}
+	for i := 0; i < len(rest); i++ {
+		if err, ok := rest[i].(error); ok && err != nil {
+			kv = append(kv, "error", err.Error())
+			continue
+		}
+		if key, ok := rest[i].(string); ok && i+1 < len(rest) {
+			kv = append(kv, key, rest[i+1])
+			i++
+			continue
+		}
+		kv = append(kv, "arg", rest[i])
+	}
+	return msg, kv
 }
 
 func extractCtxFields(ctx context.Context) []interface{} {
