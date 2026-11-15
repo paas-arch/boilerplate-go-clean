@@ -14,6 +14,7 @@ import (
 	"app.internal/internal/api/handler/notes_get/_mocks"
 	"app.internal/internal/entity"
 	schema "app.internal/internal/generated/api/schema/notes_get"
+	notebookService "app.internal/internal/service/notebook"
 	"app.internal/internal/util/webserver/response"
 )
 
@@ -52,6 +53,14 @@ func TestHandler_Handle(t *testing.T) {
 			wantCode: http.StatusInternalServerError,
 			wantBody: `{"status":"error","message":"Internal Server Error"}`,
 			wantErr:  true,
+		},
+		{
+			name: "база не подключена",
+			setup: func(nb *_mocks.Mocknotebook, _ *_mocks.Mocklogger) {
+				nb.EXPECT().ListLatest(gomock.Any()).Return(nil, notebookService.ErrNoDatabase)
+			},
+			wantCode: http.StatusServiceUnavailable,
+			wantBody: `{"status":"error","message":"База данных не подключена: подключите её на странице сервиса в панели"}`,
 		},
 	}
 

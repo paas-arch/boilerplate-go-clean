@@ -19,7 +19,7 @@ type Config struct {
 	Host string `env:"APP_HOST"`
 	// Port — порт API; панель ждёт сервис на нём и проверяет /health.
 	Port int64 `env:"APP_PORT" env-default:"8080"`
-	// DatabaseDSN — адрес базы с паролем: в логи и ошибки целиком не попадает.
+	// DatabaseDSN — адрес базы с паролем: в логи и ошибки целиком не попадает; пусто — базу сервису в панели не подключали.
 	DatabaseDSN       string   `env:"DATABASE_DSN"`
 	SentryDSN         string   `env:"SENTRY_DSN"`
 	TrustedProxyCIDRs []string `env:"TRUSTED_PROXY_CIDRS" env-separator:","`
@@ -52,9 +52,6 @@ func Load() (*Config, error) {
 func (c *Config) Validate() error {
 	var errs []error
 
-	if c.DatabaseDSN == "" {
-		errs = append(errs, errors.New("DATABASE_DSN is required"))
-	}
 	for _, prefix := range c.TrustedProxyCIDRs {
 		if _, err := netip.ParsePrefix(prefix); err != nil {
 			errs = append(errs, errors.New("TRUSTED_PROXY_CIDRS must contain valid CIDRs"))

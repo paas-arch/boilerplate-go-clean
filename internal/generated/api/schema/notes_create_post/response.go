@@ -12,6 +12,7 @@ type Response interface {
 	OK(data components.Note) response.ResponseBuilder
 	BadRequest(data components.JSendError) response.ResponseBuilder
 	InternalServerError(data components.JSendError) response.ResponseBuilder
+	Status503(data components.JSendError) response.ResponseBuilder
 }
 
 type handlerResponse struct {
@@ -42,6 +43,15 @@ func (h *handlerResponse) BadRequest(data components.JSendError) response.Respon
 
 func (h *handlerResponse) InternalServerError(data components.JSendError) response.ResponseBuilder {
 	h.resp = h.resp.SetCode(500)
+	data.FillDefault_(map[unsafe.Pointer]bool{})
+	h.resp = h.resp.
+		SetHeader("Content-Type", "application/json").
+		SetBodyJsonData(data)
+	return h.resp
+}
+
+func (h *handlerResponse) Status503(data components.JSendError) response.ResponseBuilder {
+	h.resp = h.resp.SetCode(503)
 	data.FillDefault_(map[unsafe.Pointer]bool{})
 	h.resp = h.resp.
 		SetHeader("Content-Type", "application/json").

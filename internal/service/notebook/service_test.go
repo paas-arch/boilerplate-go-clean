@@ -91,3 +91,20 @@ func TestService_Count(t *testing.T) {
 		})
 	}
 }
+
+func TestService_withoutDatabase(t *testing.T) {
+	tests := []struct {
+		name string
+		call func(s *Service) error
+	}{
+		{name: "список", call: func(s *Service) error { _, err := s.ListLatest(context.Background()); return err }},
+		{name: "число", call: func(s *Service) error { _, err := s.Count(context.Background()); return err }},
+		{name: "добавление", call: func(s *Service) error { _, err := s.Add(context.Background(), "текст"); return err }},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.ErrorIs(t, tt.call(New(nil)), ErrNoDatabase)
+		})
+	}
+}
