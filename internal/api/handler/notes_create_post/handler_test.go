@@ -64,6 +64,15 @@ func TestHandler_Handle(t *testing.T) {
 			wantBody: `{"status":"error","message":"Текст заметки: от 1 до 500 знаков"}`,
 		},
 		{
+			name: "база не подключена",
+			req:  stubRequest{dto: components.NoteCreateRequest{Text: "купить хлеб"}},
+			setup: func(uc *_mocks.Mockusecase, _ *_mocks.Mocklogger) {
+				uc.EXPECT().Run(gomock.Any(), "купить хлеб").Return(nil, errx.Unavailable(errors.New("x"), errx.WithPublicMessage("База данных не подключена")))
+			},
+			wantCode: http.StatusServiceUnavailable,
+			wantBody: `{"status":"error","message":"База данных не подключена"}`,
+		},
+		{
 			name: "внутренняя ошибка",
 			req:  stubRequest{dto: components.NoteCreateRequest{Text: "купить хлеб"}},
 			setup: func(uc *_mocks.Mockusecase, log *_mocks.Mocklogger) {

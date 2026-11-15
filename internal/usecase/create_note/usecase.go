@@ -10,6 +10,7 @@ import (
 	"github.com/alekseyshavrak/errx"
 
 	"app.internal/internal/entity"
+	notebookService "app.internal/internal/service/notebook"
 )
 
 // maxTextRunes — предел длины заметки: длинный текст — уже документ, а не заметка.
@@ -32,6 +33,9 @@ func (uc *Usecase) Run(ctx context.Context, text string) (*entity.Note, error) {
 
 	// 2. Сохраняем заметку
 	note, err := uc.notebook.Add(ctx, text)
+	if errors.Is(err, notebookService.ErrNoDatabase) {
+		return nil, errx.Unavailable(err, errx.WithPublicMessage("База данных не подключена: подключите её на странице сервиса в панели"))
+	}
 	if err != nil {
 		return nil, errx.Internal(err)
 	}

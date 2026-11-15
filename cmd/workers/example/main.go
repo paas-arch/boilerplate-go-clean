@@ -4,6 +4,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"os/signal"
@@ -47,23 +48,28 @@ func run() int {
 		return 1
 	}
 
-	dbCtx, dbCancel := context.WithTimeout(ctx, config.DatabaseConnectTimeout)
-	db, err := psql.NewPostgres(dbCtx, cfg.DatabaseDSN)
-	dbCancel()
-	if err != nil {
-		log.Error(ctx, fmt.Errorf("failed to connect to database: %w", err))
-		return 1
+	// Без DATABASE_DSN базу сервису в панели не подключали: воркер работает, а считать ему нечего.
+	notebook := notebookService.New(nil)
+	if cfg.DatabaseDSN != "" {
+		dbCtx, dbCancel := context.WithTimeout(ctx, config.DatabaseConnectTimeout)
+		db, err := psql.NewPostgres(dbCtx, cfg.DatabaseDSN)
+		dbCancel()
+		if err != nil {
+			log.Error(ctx, fmt.Errorf("failed to connect to database: %w", err))
+			return 1
+		}
+		defer func() { _ = db.Close() }()
+		notebook = notebookService.New(noteRepository.New(db, trmsqlx.DefaultCtxGetter))
 	}
-	defer func() { _ = db.Close() }()
-
-	notebook := notebookService.New(noteRepository.New(db, trmsqlx.DefaultCtxGetter))
 
 	log.Info(ctx, "worker started", "version", version)
 	ticker := time.NewTicker(config.ExampleWorkerInterval)
 	defer ticker.Stop()
 	for {
 		n, err := notebook.Count(ctx)
-		if err != nil {
+		if errors.Is(err, notebookService.ErrNoDatabase) {
+			log.Info(ctx, "database is not connected, nothing to count")
+		} else if err != nil {
 			log.Error(ctx, fmt.Errorf("failed to count notes: %w", err))
 		} else {
 			log.Info(ctx, "notes counted", "count", n)

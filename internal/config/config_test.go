@@ -13,7 +13,7 @@ func TestConfig_Validate(t *testing.T) {
 		wantErr bool
 	}{
 		{name: "есть адрес базы", cfg: Config{DatabaseDSN: "postgres://app@db/app"}},
-		{name: "нет адреса базы", cfg: Config{}, wantErr: true},
+		{name: "нет адреса базы: база не подключена", cfg: Config{}},
 		{name: "битый CIDR прокси", cfg: Config{DatabaseDSN: "postgres://app@db/app", TrustedProxyCIDRs: []string{"10.0.0.0/33"}}, wantErr: true},
 	}
 

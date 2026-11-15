@@ -34,6 +34,10 @@ func (h *Handler) Handle(ctx context.Context, req schema.JsonRequest, resp schem
 			resp.BadRequest(makeJSendError(errx.PublicMessage(err)))
 			return nil
 		}
+		if errors.Is(err, errx.ErrUnavailable) {
+			resp.Status503(makeJSendError(errx.PublicMessage(err)))
+			return nil
+		}
 
 		h.log.Error(ctx, fmt.Errorf("notesCreatePost failed: %w", err))
 		resp.InternalServerError(makeJSendError("Internal Server Error"))

@@ -64,29 +64,34 @@ func run() (exitCode int) {
 		}
 	}()
 
-	// Database: падаем на старте, если базы нет — так выкатка с неверным адресом видна как упавшая.
-	dbCtx, dbCancel := context.WithTimeout(ctx, config.DatabaseConnectTimeout)
-	db, err := psql.NewPostgres(dbCtx, cfg.DatabaseDSN)
-	dbCancel()
-	if err != nil {
-		log.Error(ctx, fmt.Errorf("failed to connect to database: %w", err))
-		return fail
+	// Database: без DATABASE_DSN базу сервису в панели не подключали — стартуем, ручки отвечают об этом; с адресом без базы падаем, так выкатка с неверным адресом видна как упавшая.
+	notebookSvc := notebookService.New(nil)
+	if cfg.DatabaseDSN == "" {
+		log.Info(ctx, "database is not connected")
+	} else {
+		dbCtx, dbCancel := context.WithTimeout(ctx, config.DatabaseConnectTimeout)
+		db, err := psql.NewPostgres(dbCtx, cfg.DatabaseDSN)
+		dbCancel()
+		if err != nil {
+			log.Error(ctx, fmt.Errorf("failed to connect to database: %w", err))
+			return fail
+		}
+		defer func() { _ = db.Close() }()
+
+		// Repository
+		noteRepo := noteRepository.New(db, trmsqlx.DefaultCtxGetter)
+
+		// Транзакции понадобятся сценарию, который пишет в несколько таблиц: tx.Do(ctx, func(ctx) error {...}).
+		txManager, err := manager.New(trmsqlx.NewDefaultFactory(db))
+		if err != nil {
+			log.Error(ctx, fmt.Errorf("failed to init transaction manager: %w", err))
+			return fail
+		}
+		_ = txManager
+
+		// Service
+		notebookSvc = notebookService.New(noteRepo)
 	}
-	defer func() { _ = db.Close() }()
-
-	// Repository
-	noteRepo := noteRepository.New(db, trmsqlx.DefaultCtxGetter)
-
-	// Транзакции понадобятся сценарию, который пишет в несколько таблиц: tx.Do(ctx, func(ctx) error {...}).
-	txManager, err := manager.New(trmsqlx.NewDefaultFactory(db))
-	if err != nil {
-		log.Error(ctx, fmt.Errorf("failed to init transaction manager: %w", err))
-		return fail
-	}
-	_ = txManager
-
-	// Service
-	notebookSvc := notebookService.New(noteRepo)
 
 	// Usecase
 	createNoteCase := createNoteUsecase.New(notebookSvc)

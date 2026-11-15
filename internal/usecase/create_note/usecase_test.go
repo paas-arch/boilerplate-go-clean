@@ -12,6 +12,7 @@ import (
 	"go.uber.org/mock/gomock"
 
 	"app.internal/internal/entity"
+	notebookService "app.internal/internal/service/notebook"
 	"app.internal/internal/usecase/create_note/_mocks"
 )
 
@@ -40,6 +41,14 @@ func TestUsecase_Run(t *testing.T) {
 				nb.EXPECT().Add(gomock.Any(), "купить хлеб").Return(nil, errors.New("db down"))
 			},
 			wantErrIs: errx.ErrInternal,
+		},
+		{
+			name: "база не подключена",
+			text: "купить хлеб",
+			setup: func(nb *_mocks.Mocknotebook) {
+				nb.EXPECT().Add(gomock.Any(), "купить хлеб").Return(nil, notebookService.ErrNoDatabase)
+			},
+			wantErrIs: errx.ErrUnavailable,
 		},
 	}
 

@@ -26,6 +26,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/JSendError'
+        503:
+          description: Базу сервису ещё не подключили
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JSendError'
 
   /api/v1/notes.create:
     post:
@@ -53,6 +59,12 @@ paths:
                 $ref: '#/components/schemas/JSendError'
         500:
           description: Внутренняя ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JSendError'
+        503:
+          description: Базу сервису ещё не подключили
           content:
             application/json:
               schema:
