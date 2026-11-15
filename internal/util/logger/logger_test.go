@@ -53,8 +53,8 @@ func TestLogger_sendToSentry(t *testing.T) {
 			l := &Logger{z: zap.NewNop().Sugar(), sentry: tt.sentryEnabled}
 			ctx := l.WithField(context.Background(), "user_id", 42)
 
-			msg, _ := split(tt.args)
-			l.sendToSentry(ctx, tt.level, msg, tt.args)
+			msg, kv := split(tt.args)
+			l.sendToSentry(ctx, tt.level, msg, kv, tt.args)
 
 			events := transport.Events()
 			require.Len(t, events, tt.wantEvents)
@@ -64,6 +64,9 @@ func TestLogger_sendToSentry(t *testing.T) {
 			e := events[0]
 			assert.Equal(t, tt.level, e.Level)
 			assert.Equal(t, 42, e.Contexts["log"]["user_id"])
+			if tt.wantMessage != "" {
+				assert.Equal(t, "notes", e.Contexts["log"]["table"])
+			}
 			if tt.wantException != "" {
 				require.NotEmpty(t, e.Exception)
 				assert.Equal(t, tt.wantException, e.Exception[len(e.Exception)-1].Value)
@@ -99,6 +102,12 @@ func TestSplit(t *testing.T) {
 			wantMsg: "boom",
 		},
 		{
+			name:    "ошибка-указатель nil не роняет процесс",
+			args:    []interface{}{"op failed", error((*nilErr)(nil))},
+			wantMsg: "op failed",
+			wantKV:  []interface{}{"error", "<nil>"},
+		},
+		{
 			name:    "значение без ключа — поле arg",
 			args:    []interface{}{"server started", 8080},
 			wantMsg: "server started",
@@ -131,3 +140,7 @@ func TestLogger_Info_fields(t *testing.T) {
 	assert.Equal(t, "load wave", entries[0].Message)
 	assert.Equal(t, map[string]interface{}{"request_id": "r1", "clients": int64(1)}, entries[0].ContextMap())
 }
+
+type nilErr struct{ msg string }
+
+func (e *nilErr) Error() string { return e.msg }

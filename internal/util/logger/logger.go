@@ -66,13 +66,13 @@ func (l *Logger) Info(ctx context.Context, args ...interface{}) {
 func (l *Logger) Error(ctx context.Context, args ...interface{}) {
 	msg, kv := split(args)
 	l.z.With(extractCtxFields(ctx)...).Errorw(msg, kv...)
-	l.sendToSentry(ctx, sentry.LevelError, msg, args)
+	l.sendToSentry(ctx, sentry.LevelError, msg, kv, args)
 }
 
 func (l *Logger) Warning(ctx context.Context, args ...interface{}) {
 	msg, kv := split(args)
 	l.z.With(extractCtxFields(ctx)...).Warnw(msg, kv...)
-	l.sendToSentry(ctx, sentry.LevelWarning, msg, args)
+	l.sendToSentry(ctx, sentry.LevelWarning, msg, kv, args)
 }
 
 func (l *Logger) WithError(ctx context.Context, err error) context.Context {
@@ -99,7 +99,7 @@ func (l *Logger) WithFields(ctx context.Context, fields map[string]interface{}) 
 }
 
 // sendToSentry шлёт error из аргументов как исключение со стектрейсом, а без него — как сообщение.
-func (l *Logger) sendToSentry(ctx context.Context, level sentry.Level, msg string, args []interface{}) {
+func (l *Logger) sendToSentry(ctx context.Context, level sentry.Level, msg string, kv, args []interface{}) {
 	if !l.sentry {
 		return
 	}
@@ -107,7 +107,7 @@ func (l *Logger) sendToSentry(ctx context.Context, level sentry.Level, msg strin
 	hub := sentry.CurrentHub().Clone()
 	hub.ConfigureScope(func(scope *sentry.Scope) {
 		scope.SetLevel(level)
-		fields := extractCtxFields(ctx)
+		fields := append(append([]interface{}{}, extractCtxFields(ctx)...), kv...)
 		data := sentry.Context{"message": msg}
 		for i := 0; i+1 < len(fields); i += 2 {
 			data[fmt.Sprint(fields[i])] = fields[i+1]
@@ -130,14 +130,12 @@ func split(args []interface{}) (string, []interface{}) {
 		return "", nil
 	}
 	msg := fmt.Sprint(args[0])
-	if err, ok := args[0].(error); ok && err != nil {
-		msg = err.Error()
-	}
 	rest := args[1:]
 	var kv []interface{}
 	for i := 0; i < len(rest); i++ {
 		if err, ok := rest[i].(error); ok && err != nil {
-			kv = append(kv, "error", err.Error())
+			// fmt.Sprint, а не err.Error(): ошибка-указатель nil внутри интерфейса не роняет процесс.
+			kv = append(kv, "error", fmt.Sprint(err))
 			continue
 		}
 		if key, ok := rest[i].(string); ok && i+1 < len(rest) {
