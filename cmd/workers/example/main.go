@@ -50,7 +50,10 @@ func run() int {
 
 	// Без DATABASE_DSN базу сервису в панели не подключали: воркер работает, а считать ему нечего.
 	notebook := notebookService.New(nil)
-	if cfg.DatabaseDSN != "" {
+	if cfg.DatabaseDSN == "" {
+		// Один раз при старте: повтор на каждом круге выглядел бы в логах как сбой.
+		log.Warning(ctx, "database is not connected: attach it on the service page in the panel")
+	} else {
 		dbCtx, dbCancel := context.WithTimeout(ctx, config.DatabaseConnectTimeout)
 		db, err := psql.NewPostgres(dbCtx, cfg.DatabaseDSN)
 		dbCancel()
@@ -67,11 +70,11 @@ func run() int {
 	defer ticker.Stop()
 	for {
 		n, err := notebook.Count(ctx)
-		if errors.Is(err, notebookService.ErrNoDatabase) {
-			log.Info(ctx, "database is not connected, nothing to count")
-		} else if err != nil {
+		switch {
+		case errors.Is(err, notebookService.ErrNoDatabase):
+		case err != nil:
 			log.Error(ctx, fmt.Errorf("failed to count notes: %w", err))
-		} else {
+		default:
 			log.Info(ctx, "notes counted", "count", n)
 		}
 
