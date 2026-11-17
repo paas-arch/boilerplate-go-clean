@@ -34,7 +34,7 @@ func (uc *Usecase) Run(ctx context.Context, text string) (*entity.Note, error) {
 	// 2. Сохраняем заметку
 	note, err := uc.notebook.Add(ctx, text)
 	if errors.Is(err, notebookService.ErrNoDatabase) {
-		return nil, errx.Unavailable(err, errx.WithPublicMessage("База данных не подключена: подключите её на странице сервиса в панели"))
+		return nil, errx.Unavailable(err, errx.WithPublicMessage("База данных не подключена: включите её в paas.toml (секция [postgresql]) и раскатите версию"))
 	}
 	if err != nil {
 		return nil, errx.Internal(err)

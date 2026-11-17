@@ -12,7 +12,7 @@ import (
 // latestLimit — сколько заметок отдаёт список: без предела ответ рос бы вместе с таблицей.
 const latestLimit = 100
 
-// ErrNoDatabase — базу сервису в панели не подключали: ручки отвечают об этом, а не внутренней ошибкой.
+// ErrNoDatabase — база в paas.toml не включена: ручки отвечают об этом, а не внутренней ошибкой.
 var ErrNoDatabase = errors.New("database is not connected")
 
 type Service struct {
