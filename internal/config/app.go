@@ -19,7 +19,7 @@ type Config struct {
 	Host string `env:"APP_HOST"`
 	// Port — порт API; панель ждёт сервис на нём и проверяет /health.
 	Port int64 `env:"APP_PORT" env-default:"8080"`
-	// DatabaseDSN — адрес базы с паролем: в логи и ошибки целиком не попадает; пусто — базу сервису в панели не подключали.
+	// DatabaseDSN — адрес базы с паролем: в логи и ошибки целиком не попадает; пусто — база в paas.toml не включена.
 	DatabaseDSN       string   `env:"DATABASE_DSN"`
 	SentryDSN         string   `env:"SENTRY_DSN"`
 	TrustedProxyCIDRs []string `env:"TRUSTED_PROXY_CIDRS" env-separator:","`

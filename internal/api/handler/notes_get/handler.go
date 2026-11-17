@@ -24,7 +24,7 @@ func New(log logger, notebook notebook) *Handler {
 func (h *Handler) Handle(ctx context.Context, _ schema.Parameters, resp schema.Response) error {
 	notes, err := h.notebook.ListLatest(ctx)
 	if errors.Is(err, notebookService.ErrNoDatabase) {
-		resp.Status503(makeJSendError("База данных не подключена: подключите её на странице сервиса в панели"))
+		resp.Status503(makeJSendError("База данных не подключена: включите её в paas.toml (секция [postgresql]) и раскатите версию"))
 		return nil
 	}
 	if err != nil {

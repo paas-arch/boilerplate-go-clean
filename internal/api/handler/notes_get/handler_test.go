@@ -60,7 +60,7 @@ func TestHandler_Handle(t *testing.T) {
 				nb.EXPECT().ListLatest(gomock.Any()).Return(nil, notebookService.ErrNoDatabase)
 			},
 			wantCode: http.StatusServiceUnavailable,
-			wantBody: `{"status":"error","message":"База данных не подключена: подключите её на странице сервиса в панели"}`,
+			wantBody: `{"status":"error","message":"База данных не подключена: включите её в paas.toml (секция [postgresql]) и раскатите версию"}`,
 		},
 	}
 

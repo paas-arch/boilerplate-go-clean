@@ -64,7 +64,7 @@ func run() (exitCode int) {
 		}
 	}()
 
-	// Database: без DATABASE_DSN базу сервису в панели не подключали — стартуем, ручки отвечают об этом; с адресом без базы падаем, так выкатка с неверным адресом видна как упавшая.
+	// Database: без DATABASE_DSN база в paas.toml не включена — стартуем, ручки отвечают об этом; с адресом без базы падаем, так выкатка с неверным адресом видна как упавшая.
 	notebookSvc := notebookService.New(nil)
 	if cfg.DatabaseDSN == "" {
 		log.Warning(ctx, "database is not connected: attach it on the service page in the panel")
