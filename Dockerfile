@@ -8,7 +8,7 @@ COPY . .
 ARG TARGETOS
 ARG TARGETARCH
 ARG VERSION=dev
-# CMD — папка бинаря в cmd/: api или workers/<имя>. Образ называется так же.
+# CMD — папка бинаря в cmd/: api, workers/<имя> или cron/<имя>. Образ называется так же.
 ARG CMD
 RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache/go-build \
     test -n "$CMD" && CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH \

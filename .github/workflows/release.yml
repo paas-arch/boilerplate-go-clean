@@ -45,8 +45,8 @@ jobs:
           image="ghcr.io/${GITHUB_REPOSITORY,,}"
           # Номер сборки растёт на единицу с каждым запуском: в панели версия видна как #<номер>.
           tag="main-${GITHUB_RUN_NUMBER}-$(git rev-parse --short=7 HEAD)"
-          # Образ на каждый бинарь из cmd/: api и workers/<имя>. По пути образа панель узнаёт роль.
-          for cmd in api $(cd cmd && ls -d workers/* 2>/dev/null); do
+          # Образ на каждый бинарь из cmd/: api, workers/<имя> и cron/<имя>. По пути образа панель узнаёт роль.
+          for cmd in api $(cd cmd && ls -d workers/* cron/* 2>/dev/null); do
             docker buildx build --platform linux/amd64,linux/arm64 \
               --target service --build-arg CMD="$cmd" --build-arg VERSION="$tag" \
               --push -t "$image/$cmd:$tag" .
