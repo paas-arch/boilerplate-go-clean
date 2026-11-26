@@ -12,7 +12,7 @@
 
 ### Для агента
 
-1. В `internal/config/app.go` убери поле `Port` с тегом `env:"APP_PORT"` и добавь константу `Port = 8080`, как в шаблоне; в `cmd/api/main.go` замени `cfg.Port` на `config.Port`.
+1. В `internal/config/app.go` убери поле `Port` с тегом `env:"APP_PORT"` и добавь константу `Port = 8080`, как в шаблоне. Найди по всему коду обращения к полю `Port` конфига (`cfg.Port` и под другими именами переменной) и замени их на `config.Port`; `go build ./...` должен пройти.
 2. Убери `APP_PORT` из `.env.example` и `.env`.
 3. Перенеси из шаблона строки про порт в `CLAUDE.md`, `ARCHITECTURE.md` и комментарий про переменные в `paas.toml`.
 
