@@ -1,4 +1,4 @@
-// Package config читает настройки сервиса из окружения. Имена APP_PORT и DATABASE_DSN задаёт панель: не переименовывай их.
+// Package config читает настройки сервиса из окружения. Имя DATABASE_DSN задаёт панель: не переименовывай его.
 package config
 
 import (
@@ -17,8 +17,6 @@ const envProduction = "production"
 type Config struct {
 	Env  string `env:"APP_ENV" env-default:"local"`
 	Host string `env:"APP_HOST"`
-	// Port — порт API; панель ждёт сервис на нём и проверяет /health.
-	Port int64 `env:"APP_PORT" env-default:"8080"`
 	// DatabaseDSN — адрес базы с паролем: в логи и ошибки целиком не попадает; пусто — база в paas.toml не включена.
 	DatabaseDSN       string   `env:"DATABASE_DSN"`
 	SentryDSN         string   `env:"SENTRY_DSN"`
@@ -26,6 +24,8 @@ type Config struct {
 }
 
 const (
+	// Port — порт API: панель ждёт сервис на нём и проверяет /health, поменять его нельзя.
+	Port = 8080
 	// Срок только на подключение: недоступная база не должна вешать запуск.
 	DatabaseConnectTimeout = 10 * time.Second
 	// Воркер-пример просыпается так часто; свой воркер заведёт свою константу.
