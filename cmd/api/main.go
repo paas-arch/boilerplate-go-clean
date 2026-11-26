@@ -103,7 +103,7 @@ func run() (exitCode int) {
 	ws, err := webserver.NewServer(
 		webserver.WithRecommendedSettings(webserver.RecommendedSettings{
 			Host:              cfg.Host,
-			Port:              cfg.Port,
+			Port:              config.Port,
 			Logger:            log,
 			TrustedProxyCIDRs: cfg.TrustedProxyCIDRs,
 		}),
@@ -116,7 +116,7 @@ func run() (exitCode int) {
 	}
 
 	go func() {
-		log.Info(ctx, "api started", "version", version, "port", cfg.Port)
+		log.Info(ctx, "api started", "version", version, "port", config.Port)
 		if err := ws.ListenAndServe(); err != nil && !webserver.IsServerClosed(err) {
 			log.Error(ctx, "api server error", err)
 			stop()
