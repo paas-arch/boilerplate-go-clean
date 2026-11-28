@@ -1,4 +1,4 @@
-// Package config читает настройки сервиса из окружения. Имя DATABASE_DSN задаёт панель: не переименовывай его.
+// Package config читает настройки сервиса из окружения. Новая настройка — поле здесь и строка в [env_vars] файла paas.toml.
 package config
 
 import (
@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net/netip"
 	"os"
-	"time"
 
 	"github.com/ilyakaznacheev/cleanenv"
 	"github.com/joho/godotenv"
@@ -15,10 +14,8 @@ import (
 const envProduction = "production"
 
 type Config struct {
-	Env  string `env:"APP_ENV" env-default:"local"`
-	Host string `env:"APP_HOST"`
-	// DatabaseDSN — адрес базы с паролем: в логи и ошибки целиком не попадает; пусто — база в paas.toml не включена.
-	DatabaseDSN       string   `env:"DATABASE_DSN"`
+	Env               string   `env:"APP_ENV" env-default:"local"`
+	Host              string   `env:"APP_HOST"`
 	SentryDSN         string   `env:"SENTRY_DSN"`
 	TrustedProxyCIDRs []string `env:"TRUSTED_PROXY_CIDRS" env-separator:","`
 }
@@ -26,10 +23,6 @@ type Config struct {
 const (
 	// Port — порт API: панель ждёт сервис на нём и проверяет /health, поменять его нельзя.
 	Port = 8080
-	// Срок только на подключение: недоступная база не должна вешать запуск.
-	DatabaseConnectTimeout = 10 * time.Second
-	// Воркер-пример просыпается так часто; свой воркер заведёт свою константу.
-	ExampleWorkerInterval = 30 * time.Second
 )
 
 func Load() (*Config, error) {
