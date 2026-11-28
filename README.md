@@ -4,28 +4,25 @@
 
 В шаблоне:
 
-- API с примером ресурса «заметки» (`/api/v1/notes.get`, `/api/v1/notes.create`) и проверкой `/health`;
-- воркер-пример `cmd/workers/example`;
-- миграция и работа с Postgres;
+- API с примером ручки через все слои (`/api/v1/greetings.create`) и проверкой `/health`;
+- образцы базы Postgres, воркера и крона в `_examples/` — сервис берёт их, когда они понадобятся;
 - сборка образов в GHCR на каждый пуш в `main` и проверки (линтер, тесты) на каждый PR;
-- правила и скилы для ИИ-агента в `CLAUDE.md` и `.claude/`.
+- инструкции, правило и скил для ИИ-агента: `CLAUDE.md` (`AGENTS.md`, `GEMINI.md` — ссылки на него), `.claude/rules/go-clean.md`, скил `.agents/skills/go-clean/` — его читают Claude Code, Codex, Cursor, Kimi Code и Gemini CLI.
 
-Предметного кода нет: ни входа пользователей, ни оплаты, ни почты.
+Предметного кода нет: ни базы, ни входа пользователей, ни оплаты, ни почты.
 
 ## Локальный запуск
 
-Нужны Go и Docker.
+Нужен Go; для `make check` — ещё Docker.
 
 ```sh
 cp .env.example .env
-make db.up migrate.up
 make run           # API на http://localhost:8080
-make run.worker    # воркер-пример
+make check         # всё, что проверят CI и сборка
 ```
 
 ```sh
-curl -X POST localhost:8080/api/v1/notes.create -H 'Content-Type: application/json' -d '{"text":"первая"}'
-curl localhost:8080/api/v1/notes.get
+curl -X POST localhost:8080/api/v1/greetings.create -H 'Content-Type: application/json' -d '{"name":"Аня"}'
 ```
 
 ## Договор с панелью

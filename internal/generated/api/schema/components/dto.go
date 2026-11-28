@@ -13,6 +13,66 @@ import (
 // ComponentsPackage is used by generated operation packages to import this package.
 const ComponentsPackage = ""
 
+type Greeting struct {
+	Text string `json:"text" form:"text"`
+}
+
+func (d *Greeting) GetText() string  { return d.Text }
+func (d *Greeting) SetText(v string) { d.Text = v }
+
+func (d *Greeting) Validate_(visited []unsafe.Pointer) error {
+	if d == nil {
+		return nil
+	}
+	for _, p := range visited {
+		if p == unsafe.Pointer(d) {
+			return validation.NewError("struct is recursive")
+		}
+	}
+	visited = append(visited, unsafe.Pointer(d))
+	return nil
+}
+
+func (d *Greeting) FillDefault_(visited map[unsafe.Pointer]bool) {
+	if d == nil {
+		return
+	}
+	if visited[unsafe.Pointer(d)] {
+		return
+	}
+	visited[unsafe.Pointer(d)] = true
+}
+
+type GreetingCreateRequest struct {
+	Name string `json:"name" form:"name"` // Имя, от 1 до 100 знаков.
+}
+
+func (d *GreetingCreateRequest) GetName() string  { return d.Name }
+func (d *GreetingCreateRequest) SetName(v string) { d.Name = v }
+
+func (d *GreetingCreateRequest) Validate_(visited []unsafe.Pointer) error {
+	if d == nil {
+		return nil
+	}
+	for _, p := range visited {
+		if p == unsafe.Pointer(d) {
+			return validation.NewError("struct is recursive")
+		}
+	}
+	visited = append(visited, unsafe.Pointer(d))
+	return nil
+}
+
+func (d *GreetingCreateRequest) FillDefault_(visited map[unsafe.Pointer]bool) {
+	if d == nil {
+		return
+	}
+	if visited[unsafe.Pointer(d)] {
+		return
+	}
+	visited[unsafe.Pointer(d)] = true
+}
+
 type EnumJSendErrorStatus struct {
 	initialized bool
 	value       string
@@ -102,104 +162,6 @@ func (d *JSendError) Validate_(visited []unsafe.Pointer) error {
 }
 
 func (d *JSendError) FillDefault_(visited map[unsafe.Pointer]bool) {
-	if d == nil {
-		return
-	}
-	if visited[unsafe.Pointer(d)] {
-		return
-	}
-	visited[unsafe.Pointer(d)] = true
-}
-
-type Note struct {
-	CreatedAt string `json:"createdAt" form:"createdAt"`
-	Id        int64  `json:"id" form:"id"`
-	Text      string `json:"text" form:"text"`
-}
-
-func (d *Note) GetCreatedAt() string  { return d.CreatedAt }
-func (d *Note) SetCreatedAt(v string) { d.CreatedAt = v }
-
-func (d *Note) GetId() int64  { return d.Id }
-func (d *Note) SetId(v int64) { d.Id = v }
-
-func (d *Note) GetText() string  { return d.Text }
-func (d *Note) SetText(v string) { d.Text = v }
-
-func (d *Note) Validate_(visited []unsafe.Pointer) error {
-	if d == nil {
-		return nil
-	}
-	for _, p := range visited {
-		if p == unsafe.Pointer(d) {
-			return validation.NewError("struct is recursive")
-		}
-	}
-	visited = append(visited, unsafe.Pointer(d))
-	return nil
-}
-
-func (d *Note) FillDefault_(visited map[unsafe.Pointer]bool) {
-	if d == nil {
-		return
-	}
-	if visited[unsafe.Pointer(d)] {
-		return
-	}
-	visited[unsafe.Pointer(d)] = true
-}
-
-type NoteCreateRequest struct {
-	Text string `json:"text" form:"text"` // От 1 до 500 знаков.
-}
-
-func (d *NoteCreateRequest) GetText() string  { return d.Text }
-func (d *NoteCreateRequest) SetText(v string) { d.Text = v }
-
-func (d *NoteCreateRequest) Validate_(visited []unsafe.Pointer) error {
-	if d == nil {
-		return nil
-	}
-	for _, p := range visited {
-		if p == unsafe.Pointer(d) {
-			return validation.NewError("struct is recursive")
-		}
-	}
-	visited = append(visited, unsafe.Pointer(d))
-	return nil
-}
-
-func (d *NoteCreateRequest) FillDefault_(visited map[unsafe.Pointer]bool) {
-	if d == nil {
-		return
-	}
-	if visited[unsafe.Pointer(d)] {
-		return
-	}
-	visited[unsafe.Pointer(d)] = true
-}
-
-type NotesResponse struct {
-	Notes []Note `json:"notes" form:"notes"`
-}
-
-func (d *NotesResponse) GetNotes() []Note  { return d.Notes }
-func (d *NotesResponse) SetNotes(v []Note) { d.Notes = v }
-
-func (d *NotesResponse) Validate_(visited []unsafe.Pointer) error {
-	if d == nil {
-		return nil
-	}
-	for _, p := range visited {
-		if p == unsafe.Pointer(d) {
-			return validation.NewError("struct is recursive")
-		}
-	}
-	visited = append(visited, unsafe.Pointer(d))
-	return nil
-}
-
-func (d *NotesResponse) FillDefault_(visited map[unsafe.Pointer]bool) {
 	if d == nil {
 		return
 	}

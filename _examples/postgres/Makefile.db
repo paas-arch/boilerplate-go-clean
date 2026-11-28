@@ -1,0 +1,11 @@
+# Команды базы: перенеси эти цели в Makefile сервиса и добавь их в строку .PHONY.
+# goose подключается к модулю один раз: go get -tool github.com/pressly/goose/v3/cmd/goose@v3.30.0
+db.up: ## Поднять локальную базу и дождаться готовности
+	docker compose up -d --wait db
+db.down: ## Остановить локальную базу; данные остаются в томе
+	docker compose down
+migrate.up: ## Применить миграции из migrations/ к локальной базе
+	go tool goose -dir migrations postgres "$(DATABASE_DSN)" up
+migrate.create: ## Создать миграцию. Пример: make migrate.create name=create_orders
+	@test -n "$(name)" || (echo "нужен name=<snake>" && exit 1)
+	go tool goose -dir migrations -s create "$(name)" sql

@@ -4,53 +4,28 @@ info:
   version: "1.0.0"
 
 tags:
-  - name: notes
-    description: Заметки — пример ресурса; замени на свой
+  - name: greetings
+    description: Приветствие — пример ручки через все слои; замени на свою
 
 paths:
-  /api/v1/notes.get:
-    get:
-      operationId: notesGet
-      summary: Последние заметки, новые первыми.
-      tags: [ notes ]
-      responses:
-        200:
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/NotesResponse'
-        500:
-          description: Внутренняя ошибка
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/JSendError'
-        503:
-          description: Базу сервису ещё не подключили
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/JSendError'
-
-  /api/v1/notes.create:
+  /api/v1/greetings.create:
     post:
-      operationId: notesCreatePost
-      summary: Добавить заметку.
-      tags: [ notes ]
+      operationId: greetingsCreatePost
+      summary: Поздороваться по имени.
+      tags: [ greetings ]
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/NoteCreateRequest'
+              $ref: '#/components/schemas/GreetingCreateRequest'
       responses:
         200:
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Note'
+                $ref: '#/components/schemas/Greeting'
         400:
           description: Неверный запрос
           content:
@@ -59,12 +34,6 @@ paths:
                 $ref: '#/components/schemas/JSendError'
         500:
           description: Внутренняя ошибка
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/JSendError'
-        503:
-          description: Базу сервису ещё не подключили
           content:
             application/json:
               schema:
@@ -83,32 +52,17 @@ components:
           type: string
           description: Текст для человека, по-русски.
 
-    NotesResponse:
+    GreetingCreateRequest:
       type: object
-      required: [ notes ]
+      required: [ name ]
       properties:
-        notes:
-          type: array
-          items:
-            $ref: '#/components/schemas/Note'
-
-    Note:
-      type: object
-      required: [ id, text, createdAt ]
-      properties:
-        id:
-          type: integer
-          format: int64
-        text:
+        name:
           type: string
-        createdAt:
-          type: string
-          format: date-time
+          description: Имя, от 1 до 100 знаков.
 
-    NoteCreateRequest:
+    Greeting:
       type: object
       required: [ text ]
       properties:
         text:
           type: string
-          description: От 1 до 500 знаков.

@@ -8,19 +8,12 @@ import (
 	"os/signal"
 	"syscall"
 
-	trmsqlx "github.com/avito-tech/go-transaction-manager/drivers/sqlx/v2"
-	"github.com/avito-tech/go-transaction-manager/trm/v2/manager"
-
-	notesCreatePostHandler "app.internal/internal/api/handler/notes_create_post"
-	notesGetHandler "app.internal/internal/api/handler/notes_get"
+	greetingsCreatePostHandler "app.internal/internal/api/handler/greetings_create_post"
 	"app.internal/internal/config"
-	notesCreatePostSchema "app.internal/internal/generated/api/schema/notes_create_post"
-	notesGetSchema "app.internal/internal/generated/api/schema/notes_get"
-	noteRepository "app.internal/internal/repository/note"
-	notebookService "app.internal/internal/service/notebook"
-	createNoteUsecase "app.internal/internal/usecase/create_note"
+	greetingsCreatePostSchema "app.internal/internal/generated/api/schema/greetings_create_post"
+	greeterService "app.internal/internal/service/greeter"
+	createGreetingUsecase "app.internal/internal/usecase/create_greeting"
 	"app.internal/internal/util/logger"
-	"app.internal/internal/util/psql"
 	"app.internal/internal/util/webserver"
 )
 
@@ -64,41 +57,16 @@ func run() (exitCode int) {
 		}
 	}()
 
-	// Database: без DATABASE_DSN база в paas.toml не включена — стартуем, ручки отвечают об этом; с адресом без базы падаем, так выкатка с неверным адресом видна как упавшая.
-	notebookSvc := notebookService.New(nil)
-	if cfg.DatabaseDSN == "" {
-		log.Warning(ctx, "database is not connected: attach it on the service page in the panel")
-	} else {
-		dbCtx, dbCancel := context.WithTimeout(ctx, config.DatabaseConnectTimeout)
-		db, err := psql.NewPostgres(dbCtx, cfg.DatabaseDSN)
-		dbCancel()
-		if err != nil {
-			log.Error(ctx, fmt.Errorf("failed to connect to database: %w", err))
-			return fail
-		}
-		defer func() { _ = db.Close() }()
+	// База, clients и repositories — здесь, перед сервисами; образец подключения базы — _examples/postgres.
 
-		// Repository
-		noteRepo := noteRepository.New(db, trmsqlx.DefaultCtxGetter)
-
-		// Транзакции понадобятся сценарию, который пишет в несколько таблиц: tx.Do(ctx, func(ctx) error {...}).
-		txManager, err := manager.New(trmsqlx.NewDefaultFactory(db))
-		if err != nil {
-			log.Error(ctx, fmt.Errorf("failed to init transaction manager: %w", err))
-			return fail
-		}
-		_ = txManager
-
-		// Service
-		notebookSvc = notebookService.New(noteRepo)
-	}
+	// Service
+	greeterSvc := greeterService.New()
 
 	// Usecase
-	createNoteCase := createNoteUsecase.New(notebookSvc)
+	createGreetingCase := createGreetingUsecase.New(greeterSvc)
 
 	// Handler
-	notesGetMethod := notesGetHandler.New(log, notebookSvc)
-	notesCreatePostMethod := notesCreatePostHandler.New(log, createNoteCase)
+	greetingsCreatePostMethod := greetingsCreatePostHandler.New(log, createGreetingCase)
 
 	ws, err := webserver.NewServer(
 		webserver.WithRecommendedSettings(webserver.RecommendedSettings{
@@ -107,8 +75,7 @@ func run() (exitCode int) {
 			Logger:            log,
 			TrustedProxyCIDRs: cfg.TrustedProxyCIDRs,
 		}),
-		webserver.WithHandler(notesGetSchema.Handle(notesGetMethod)),
-		webserver.WithHandler(notesCreatePostSchema.Handle(notesCreatePostMethod)),
+		webserver.WithHandler(greetingsCreatePostSchema.Handle(greetingsCreatePostMethod)),
 	)
 	if err != nil {
 		log.Error(ctx, "failed to create server", err)
