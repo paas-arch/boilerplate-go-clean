@@ -7,7 +7,7 @@
 - API с примером ручки через все слои (`/api/v1/greetings.create`) и проверкой `/health`;
 - образцы базы Postgres, воркера и крона в `_examples/` — сервис берёт их, когда они понадобятся;
 - сборка образов в GHCR на каждый пуш в `main` и проверки (линтер, тесты) на каждый PR;
-- правила и скил для ИИ-агента в `CLAUDE.md` и `.claude/`.
+- инструкции, правило и скил для ИИ-агента: `CLAUDE.md` (`AGENTS.md`, `GEMINI.md` — ссылки на него), `.claude/rules/go-clean.md`, скил `.agents/skills/go-clean/` — его читают Claude Code, Codex, Cursor, Kimi Code и Gemini CLI.
 
 Предметного кода нет: ни базы, ни входа пользователей, ни оплаты, ни почты.
 
